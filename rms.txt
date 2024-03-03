@@ -1,0 +1,849 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/javafx/FXMain.java to edit this template
+ */
+package rms1;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundSize;
+import javafx.scene.paint.Color;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.paint.Color;
+import javafx.geometry.Insets;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
+import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Alert;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.ArrayList;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextArea;
+
+import java.util.Optional;
+public class Rms1 extends Application {
+
+    private Stage primaryStage;
+    private TextArea outputTextArea;
+ 
+    @Override
+    public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
+        showIntroPage();
+    }private void showIntroPage() {
+    primaryStage.setTitle("Recipe Management System");
+
+    Image introImage = new Image("file:C:\\Users\\LENOVO\\Documents\\NetBeansProjects\\rms1\\src\\rms1\\img01.jpg");
+    ImageView introImageView = new ImageView(introImage);
+
+    Button findRecipeButton = new Button("Taste Your Food");
+    findRecipeButton.getStyleClass().add("main-button");
+    findRecipeButton.setStyle("-fx-background-color: #AEF359; -fx-text-fill: white; -fx-font-size: 24; -fx-padding: 15 30;"); // Adjust the size and padding as needed
+
+    // Add a welcome label with a different font style
+    Label welcomeLabel = new Label("WELCOME TO COOKU APP!!");
+    welcomeLabel.setStyle("-fx-font-family: 'Arial Pro Bold Italic'; -fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: white;");
+
+    VBox introLayout = new VBox(20, welcomeLabel, findRecipeButton);
+    introLayout.setAlignment(Pos.CENTER);
+
+    StackPane stackPane = new StackPane(introImageView, introLayout);
+
+    findRecipeButton.setOnAction(event -> showWelcomePage());
+
+    Scene introScene = new Scene(stackPane, 800, 600);
+
+    primaryStage.setScene(introScene);
+    primaryStage.show();
+}
+
+
+   private void showHomePage(String email) {
+    primaryStage.setTitle("Home Page");
+
+    // Add buttons for different actions
+    Button createRecipeButton = new Button("Create Recipe");
+    createRecipeButton.setStyle("-fx-font-size: 20; -fx-padding: 15 30; -fx-background-color: #27ae60; -fx-text-fill: white;");
+    createRecipeButton.setOnAction(event -> showCreateRecipePage(email));
+
+    Button viewRecipesButton = new Button("View Recipes");
+    viewRecipesButton.setStyle("-fx-font-size: 20; -fx-padding: 15 30; -fx-background-color: #3498db; -fx-text-fill: white;");
+    viewRecipesButton.setOnAction(event -> showRecipesByRating(email));
+
+    Button feedbackButton = new Button("Provide Feedback");
+    feedbackButton.setStyle("-fx-font-size: 20; -fx-padding: 15 30; -fx-background-color: #e74c3c; -fx-text-fill: white;");
+    feedbackButton.setOnAction(event -> showFeedbackDialog(email));
+
+    // You can add other components or content specific to the home page
+
+    VBox homeLayout = new VBox(20, createRecipeButton, viewRecipesButton, feedbackButton);
+    homeLayout.setAlignment(Pos.CENTER);
+    homeLayout.getStyleClass().add("main-background");
+
+    // Background Image
+    Image backgroundImage = new Image("file:C:\\Users\\LENOVO\\Documents\\NetBeansProjects\\rms1\\src\\rms1\\cooku.jpg");
+    BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
+    homeLayout.setBackground(new Background(background));
+
+    StackPane stackPane = new StackPane();
+    stackPane.setBackground(new Background(background));
+    stackPane.getChildren().add(homeLayout);
+
+    Scene homeScene = new Scene(stackPane, 800, 600);
+    // Set the CSS or other styling if needed
+
+    primaryStage.setScene(homeScene);
+   }
+
+private void showCreateRecipePage(String email) {
+    primaryStage.setTitle("Create Recipe");
+
+    // Create labels, text fields, and buttons for recipe details
+    Label dishLabel = new Label("Dish:");
+    TextField dishField = new TextField();
+
+    Label cuisineLabel = new Label("Cuisine:");
+    TextField cuisineField = new TextField();
+
+    Label ingredientsLabel = new Label("Ingredients:");
+    TextArea ingredientsArea = new TextArea();
+
+    Label durationLabel = new Label("Duration:");
+    TextField durationField = new TextField();
+
+    Label budgetLabel = new Label("Budget:");
+    TextField budgetField = new TextField();
+
+    Label proceduresLabel = new Label("Procedures:");
+    TextArea proceduresArea = new TextArea();
+
+    Button saveRecipeButton = new Button("Save Recipe");
+    saveRecipeButton.setStyle("-fx-font-size: 14; -fx-padding: 5 10; -fx-background-color: #27ae60; -fx-text-fill: white;");
+    saveRecipeButton.setMinSize(100, 30); // Adjust the button size
+    saveRecipeButton.setOnAction(event -> saveRecipe(dishField.getText(), cuisineField.getText(),
+            ingredientsArea.getText(), durationField.getText(), budgetField.getText(), proceduresArea.getText()));
+
+    // Add a button to go back to the home page
+    Button goToHomeButton = new Button("Back to Home Page");
+    goToHomeButton.setStyle("-fx-font-size: 14; -fx-padding: 5 10; -fx-background-color: #3498db; -fx-text-fill: white;");
+    goToHomeButton.setMinSize(150, 30); // Adjust the button size
+    goToHomeButton.setOnAction(event -> showHomePage(email));
+
+    // Create a layout for the recipe creation page
+    VBox createRecipeLayout = new VBox(10, dishLabel, dishField, cuisineLabel, cuisineField,
+            ingredientsLabel, ingredientsArea, durationLabel, durationField, budgetLabel, budgetField,
+            proceduresLabel, proceduresArea, saveRecipeButton, goToHomeButton);
+
+    createRecipeLayout.setAlignment(Pos.CENTER);
+
+    // Background Image
+    Image backgroundImage = new Image("file:C:\\Users\\LENOVO\\Documents\\NetBeansProjects\\rms1\\src\\rms1\\cooku.jpg");
+    BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
+    createRecipeLayout.setBackground(new Background(background));
+
+    createRecipeLayout.setPadding(new Insets(20));
+    createRecipeLayout.setStyle("-fx-background-color: rgba(255, 255, 255, 0.7); -fx-padding: 20; -fx-background-radius: 10;");
+
+    Scene createRecipeScene = new Scene(createRecipeLayout, 800, 600);
+    primaryStage.setScene(createRecipeScene);
+}
+
+
+public void saveRecipe(String dish, String cuisine, String ingredients, String duration, String budget, String procedures) {
+    String url = "jdbc:mysql://localhost:3306/rms";
+    String user = "root";
+    String pass = "Gobika@123";
+    
+    try (Connection conn = DriverManager.getConnection(url, user, pass);
+         PreparedStatement pstmt = conn.prepareStatement(
+                 "INSERT INTO recipes (dish, cuisine, ingredients, duration, budget, procedures) VALUES (?, ?, ?, ?, ?, ?)")) {
+
+        // Set values for the placeholders
+        pstmt.setString(1, dish);
+        pstmt.setString(2, cuisine);
+        pstmt.setString(3, ingredients);
+        pstmt.setString(4, duration);
+        pstmt.setString(5, budget);
+        pstmt.setString(6, procedures);
+
+        // Execute the SQL statement to insert the recipe into the database
+        int rowsAffected = pstmt.executeUpdate();
+
+        if (rowsAffected > 0) {
+            System.out.println("Recipe saved successfully!");
+        } else {
+            System.out.println("Failed to save recipe. No rows affected.");
+        }
+
+    } catch (SQLException e) {
+        System.out.println("Error saving recipe: " + e.getMessage());
+    }
+}
+private void showRecipesByRating(String email) {
+    primaryStage.setTitle("View Recipe");
+
+    // Create a layout to display the recipes
+    VBox recipesLayout = new VBox(10);
+    recipesLayout.setAlignment(Pos.CENTER);
+    recipesLayout.setPadding(new Insets(20));
+   Image backgroundImage = new Image("file:C:/Users/LENOVO/Documents/NetBeansProjects/rms1/src/rms1/cooku.jpg");
+BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
+Background backgroundObject = new Background(background);
+
+recipesLayout.setBackground(backgroundObject);
+    // Add a button to reveal the search bar
+    Button revealSearchButton = new Button("Search for Dish");
+    revealSearchButton.setStyle("-fx-font-size: 14; -fx-padding: 16 32; -fx-background-color: #00A550; -fx-text-fill: white;");
+    recipesLayout.getChildren().add(revealSearchButton);
+
+    // Add a button to go back to the home page
+    Button goToHomeButton = new Button("Back to Home Page");
+    goToHomeButton.setStyle("-fx-font-size: 14; -fx-padding: 16 32; -fx-background-color: #00A550 ; -fx-text-fill: white;");
+    recipesLayout.getChildren().add(goToHomeButton);
+
+    // Initially, hide the search bar
+    HBox searchBar = createSearchBar(email);
+    searchBar.setVisible(false);
+
+    // Set up the actions for buttons
+    revealSearchButton.setOnAction(event -> searchBar.setVisible(true));
+    goToHomeButton.setOnAction(event -> showHomePage(email));
+
+    recipesLayout.getChildren().addAll(searchBar);
+
+    ScrollPane scrollPane = new ScrollPane();
+    scrollPane.setContent(recipesLayout);
+    scrollPane.setFitToWidth(true);
+    scrollPane.setFitToHeight(true);
+
+    Scene recipesScene = new Scene(scrollPane, 800, 600);
+    primaryStage.setScene(recipesScene);
+}
+
+private HBox createSearchBar(String email) {
+    HBox searchBar = new HBox(10);
+    searchBar.setAlignment(Pos.CENTER);
+
+    // Add search components
+    TextField searchField = new TextField();
+    searchField.setPromptText("Search for dishes");
+
+    Button searchButton = new Button("Search");
+    searchButton.setOnAction(event -> displayMatchingDishes(email, searchField.getText()));
+    searchButton.setStyle("-fx-font-size: 14; -fx-padding: 16 32; -fx-background-color: #893843; -fx-text-fill: white;");
+
+    // Add a button to go back to the home page
+    Button goBackButton = new Button("Back to Recipes");
+    goBackButton.setOnAction(event -> {
+        searchBar.setVisible(false);
+        showRecipesByRating(email);
+    });
+    goBackButton.setStyle("-fx-font-size: 14; -fx-padding: 16 32; -fx-background-color: #893843; -fx-text-fill: white;");
+
+    searchBar.getChildren().addAll(searchField, searchButton, goBackButton);
+    return searchBar;
+}
+
+private List<Recipe> getRecipesByRating() {
+    // Retrieve recipes from the database based on rating in descending order
+    // Implement the logic to fetch recipes from the database ordered by rating
+    // You can reuse your existing database code or modify it as needed
+    // For simplicity, I'm assuming you have a Recipe class to represent a recipe
+    // Replace Recipe with your actual class or data structure
+    List<Recipe> recipes = new ArrayList<>();
+
+    String url = "jdbc:mysql://localhost:3306/rms";
+    String user = "root";
+    String pass = "Gobika@123";
+
+    try (Connection conn = DriverManager.getConnection(url, user, pass)) {
+        String query = "SELECT * FROM recipes";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(query);
+             ResultSet resultSet = pstmt.executeQuery()) {
+
+            while (resultSet.next()) {
+                Recipe recipe = new Recipe(
+                        resultSet.getString("dish"),
+                        resultSet.getString("cuisine"),
+                        resultSet.getString("ingredients"),
+                        resultSet.getString("Duration"),
+                        resultSet.getString("budget"),
+                        resultSet.getString("procedures"),
+                        resultSet.getDouble("ratings")
+                );
+                recipes.add(recipe);
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return recipes;
+}
+
+private VBox createRecipeBox(Recipe recipe) {
+    // Create a VBox or another layout to display the details of a recipe
+    // You can customize this method based on how you want to display each recipe
+    VBox recipeBox = new VBox(5);
+    recipeBox.setStyle("-fx-border-color: black; -fx-border-width: 1px; -fx-padding: 10;");
+
+    Label dishLabel = new Label("Dish: " + recipe.getDish());
+    Label cuisineLabel = new Label("Cuisine: " + recipe.getCuisine());
+    Label ratingLabel = new Label("Rating: " + recipe.getRatings());
+
+    // Add other details as needed
+
+    Button viewDetailsButton = new Button("View Details");
+    viewDetailsButton.setOnAction(event -> showDishDetails(recipe.getDish(), recipe.getIngredients(), recipe.getProcedures()));
+    viewDetailsButton.setStyle("-fx-font-size: 14; -fx-padding: 8 16; -fx-background-color: #2196F3; -fx-text-fill: white;");
+
+    recipeBox.getChildren().addAll(dishLabel, cuisineLabel, ratingLabel, viewDetailsButton);
+    return recipeBox;
+}
+private void showDishDetails(String dishName, String ingredients, String procedure) {
+    Stage detailsStage = new Stage();
+    detailsStage.setTitle(dishName + " Details");
+
+    VBox detailsLayout = new VBox(20);
+    detailsLayout.setAlignment(Pos.CENTER);
+    detailsLayout.setPadding(new Insets(20));
+    detailsLayout.setStyle("-fx-background-color: #f0f0f0; -fx-background-radius: 10;");
+
+    Label titleLabel = new Label("Details for " + dishName);
+    titleLabel.setStyle("-fx-font-size: 20; -fx-font-weight: bold;");
+
+    TextArea ingredientsTextArea = new TextArea(ingredients);
+    ingredientsTextArea.setEditable(false);
+    ingredientsTextArea.setWrapText(true);
+    ingredientsTextArea.setMaxHeight(150);
+    ingredientsTextArea.setStyle("-fx-background-color: #e0e0e0; -fx-font-size: 14;");
+
+    TextArea procedureTextArea = new TextArea(procedure);
+    procedureTextArea.setEditable(false);
+    procedureTextArea.setWrapText(true);
+    procedureTextArea.setMaxHeight(150);
+    procedureTextArea.setStyle("-fx-background-color: #e0e0e0; -fx-font-size: 14;");
+
+    TextField ratingInput = new TextField();
+    ratingInput.setPromptText("Enter your rating");
+    ratingInput.setMaxWidth(200);
+
+    Button submitRatingButton = new Button("Submit Rating");
+    submitRatingButton.setOnAction(event -> submitRating( dishName, ratingInput.getText(), detailsStage));
+    submitRatingButton.setStyle("-fx-font-size: 16; -fx-padding: 8 16; -fx-background-color: #4caf50; -fx-text-fill: white;");
+
+    Button closeButton = new Button("Close");
+    closeButton.setOnAction(event -> detailsStage.close());
+    closeButton.setStyle("-fx-font-size: 16; -fx-padding: 8 16; -fx-background-color: #d9534f; -fx-text-fill: white;");
+
+    detailsLayout.getChildren().addAll(titleLabel, createLabel("Ingredients:"), ingredientsTextArea,
+            createLabel("Procedure:"), procedureTextArea, createLabel("Your Rating:"), ratingInput, submitRatingButton, closeButton);
+
+    Scene detailsScene = new Scene(detailsLayout, 400, 500);
+    detailsStage.setScene(detailsScene);
+    detailsStage.show();
+}
+private VBox createDishBox(String dishName, String cuisine, String ingredients, String duration, String budget, String procedure, double rating) {
+    VBox dishBox = new VBox(15);
+    dishBox.setAlignment(Pos.CENTER);
+    dishBox.setStyle("-fx-border-color: black; -fx-border-width: 2; -fx-padding: 10;");
+
+    Label dishNameLabel = new Label("Dish Name: " + dishName);
+    dishNameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #2196F3;");
+    Label cuisineLabel = new Label("Cuisine: " + cuisine);
+    Label durationLabel = new Label("Time: " + duration);
+    Label budgetLabel = new Label("Budget: " + budget);
+    Label ratingLabel = new Label("Rating: " + rating);
+
+    Button detailsButton = new Button("View Details");
+    detailsButton.setOnAction(event -> showDishDetails(dishName, ingredients, procedure));
+
+    detailsButton.setStyle("-fx-font-size: 14; -fx-padding: 8 16; -fx-background-color: #2196F3; -fx-text-fill: white;");
+    
+    dishBox.getChildren().addAll(dishNameLabel, cuisineLabel, durationLabel, budgetLabel, ratingLabel, detailsButton);
+
+    return dishBox;
+}
+
+// New method to handle rating submission
+private void submitRating( String dishName, String rating, Stage detailsStage) {
+    // Validate the rating input
+    try {
+        double userRating = Double.parseDouble(rating);
+      
+        // Add logic to submit the rating to the database
+        String url = "jdbc:mysql://localhost:3306/rms";
+        String userDB = "root";
+        String passDB = "Gobika@123";
+
+        try (Connection conn = DriverManager.getConnection(url, userDB, passDB)) {
+            // Assuming you have a ratings table with columns (email, dish, rating)
+            String query = "INSERT INTO ratings ( dish, rating) VALUES ( ?, ?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+               
+                pstmt.setString(1, dishName);
+                pstmt.setDouble(2, userRating);
+
+                int rowsAffected = pstmt.executeUpdate();
+
+                if (rowsAffected > 0) {
+                    System.out.println("Rating submitted successfully!");
+                } else {
+                    System.out.println("Failed to submit rating. No rows affected.");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        // You may want to add further logic here, such as updating the UI or notifying the user
+
+        // Close the details stage
+        detailsStage.close();
+    } catch (NumberFormatException e) {
+        // Handle invalid rating input (non-numeric input)
+        System.out.println("Invalid rating input. Please enter a numeric value.");
+    }
+}
+
+   private void displayMatchingDishes(String email, String searchQuery) {
+    // Assuming you have a method to fetch matching dishes from the database
+    List<Recipe> matchingDishes = fetchMatchingDishesFromDB(searchQuery);
+
+
+    // Assuming you have a method to create a display for each dish
+    List<VBox> dishDisplays = new ArrayList<>();
+    for (Recipe dish : matchingDishes) {
+        dishDisplays.add(createRecipeBox(dish));
+    }
+
+    // Assuming you have a container to display the results (you need to create this)
+    VBox resultsContainer = new VBox(10);
+    resultsContainer.getChildren().addAll(dishDisplays);
+
+    // Assuming you have a scroll pane to handle a large number of results
+    ScrollPane scrollPane = new ScrollPane(resultsContainer);
+
+    // Assuming you have a scene and stage to display the results
+ 
+    Scene resultsScene = new Scene(scrollPane, 400, 400);
+Stage resultsStage = new Stage();
+resultsStage.setScene(resultsScene);
+resultsStage.setTitle("Matching Dishes");
+resultsStage.show();
+
+   }
+
+// Example method signature, replace it with your actual implementation
+private List<Recipe> fetchMatchingDishesFromDB(String searchQuery) {
+    List<Recipe> matchingDishes = new ArrayList<>();
+    String url = "jdbc:mysql://localhost:3306/rms";
+    String user = "root";
+    String pass = "Gobika@123";
+
+    try (Connection conn = DriverManager.getConnection(url, user, pass)) {
+        // Adjust the query based on your needs
+        String query = "SELECT * FROM recipes WHERE dish LIKE ?";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, "%" + searchQuery + "%");  // Using LIKE for a partial match
+
+            try (ResultSet resultSet = pstmt.executeQuery()) {
+                while (resultSet.next()) {
+                    Recipe recipe = new Recipe(
+                            resultSet.getString("dish"),
+                            resultSet.getString("cuisine"),
+                            resultSet.getString("ingredients"),
+                            resultSet.getString("duration"),
+                            resultSet.getString("budget"),
+                            resultSet.getString("procedures"),
+                            resultSet.getDouble("ratings")
+                    );
+                    matchingDishes.add(recipe);
+                }
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return matchingDishes;
+}
+
+
+
+// New method to save rating to the Ratings table
+private void saveRatingToDatabase( String dishName, String rating, Stage detailsStage) {
+    try {
+        double userRating = Double.parseDouble(rating);
+
+        String url = "jdbc:mysql://localhost:3306/rms";
+        String userDB = "root";
+        String passDB = "Gobika@123";
+
+        try (Connection conn = DriverManager.getConnection(url, userDB, passDB)) {
+            String query = "INSERT INTO ratings (dish, rating) VALUES (?, ?)";
+
+            try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+                pstmt.setString(1, dishName);
+                pstmt.setDouble(2, userRating);
+
+                int rowsAffected = pstmt.executeUpdate();
+
+                if (rowsAffected > 0) {
+                    System.out.println("Rating submitted successfully!");
+                } else {
+                    System.out.println("Failed to submit rating. No rows affected.");
+                }
+            }
+        }
+    } catch (NumberFormatException e) {
+        System.out.println("Invalid rating input. Please enter a numeric value.");
+    } catch (SQLException e) {
+        e.printStackTrace(); // Print the exception details for debugging
+    } finally {
+        // Close the details stage, regardless of success or failure
+        detailsStage.close();
+    }
+}
+
+
+
+public class Recipe {
+    private String dish;
+    private String cuisine;
+    private String ingredients;
+    private String duration;
+    private String budget;
+    private String procedures;
+    private double ratings;
+
+    public Recipe(String dish, String cuisine, String ingredients, String duration, String budget, String procedures, double ratings) {
+        this.dish = dish;
+        this.cuisine = cuisine;
+        this.ingredients = ingredients;
+        this.duration = duration;
+        this.budget = budget;
+        this.procedures = procedures;
+        this.ratings = ratings;
+    }
+
+    public String getDish() {
+        return dish;
+    }
+
+    public String getCuisine() {
+        return cuisine;
+    }
+
+    public String getIngredients() {
+        return ingredients;
+    }
+
+    public String getDuration() {
+        return duration;
+    }
+
+    public String getBudget() {
+        return budget;
+    }
+
+    public String getProcedures() {
+        return procedures;
+    }
+
+    public double getRatings() {
+        return ratings;
+    }
+}
+
+private void showFeedbackDialog(String email) {
+    Alert feedbackDialog = new Alert(Alert.AlertType.CONFIRMATION);
+    feedbackDialog.setTitle("Feedback");
+    feedbackDialog.setHeaderText("Provide Feedback");
+    feedbackDialog.setContentText("Please provide your feedback below:");
+
+    TextArea feedbackTextArea = new TextArea();
+    feedbackTextArea.setWrapText(true);
+    feedbackTextArea.setMaxWidth(Double.MAX_VALUE);
+    feedbackTextArea.setMaxHeight(Double.MAX_VALUE);
+
+    feedbackDialog.getDialogPane().setContent(feedbackTextArea);
+
+    // Customize the buttons (you can add more buttons if needed)
+    ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+ButtonType submitButton = new ButtonType("Submit");
+
+    feedbackDialog.getButtonTypes().setAll(submitButton, cancelButton);
+
+    Optional<ButtonType> result = feedbackDialog.showAndWait();
+
+    if (result.isPresent() && result.get() == submitButton) {
+        String feedbackText = feedbackTextArea.getText();
+        saveFeedback(email, feedbackText);
+        // You can process or save the feedback here
+        System.out.println("Feedback submitted: " + feedbackText);
+    } else {
+        // User clicked Cancel or closed the dialog
+        System.out.println("Feedback canceled");
+    }
+}
+
+private void saveFeedback(String email, String feedbackText) {
+    // Implement logic to save the feedback to the database
+    // Use the provided email parameter to associate the feedback with the user
+
+    // For simplicity, I'm printing the details; replace it with your database logic
+    System.out.println("Feedback saved for user: " + email);
+    System.out.println("Feedback text: " + feedbackText);
+}
+private int getUserIdByEmail(Connection conn, String email) throws SQLException {
+    // Fetch User_id based on the provided email
+    String selectQuery = "SELECT UserID FROM user WHERE Email = ?";
+    try (PreparedStatement pstmt = conn.prepareStatement(selectQuery)) {
+        pstmt.setString(1, email);
+        try (ResultSet resultSet = pstmt.executeQuery()) {
+            if (resultSet.next()) {
+                return resultSet.getInt("UserID");
+            }
+        }
+    }
+    return -1; // Return -1 if the user is not found (handle this accordingly in your application)
+}
+
+private void showWelcomePage() {
+    primaryStage.setTitle("Welcome Page");
+
+    Image welcomeImage = new Image("file:C:\\Users\\LENOVO\\Documents\\NetBeansProjects\\rms1\\src\\rms1\\cooku.jpg");
+    ImageView welcomeImageView = new ImageView(welcomeImage);
+
+    Button loginButton = new Button("Login");
+    loginButton.getStyleClass().add("main-button");
+    loginButton.setStyle("-fx-font-size: 24; -fx-padding: 10 20; -fx-background-color: #3498db; -fx-text-fill: white;");
+    loginButton.setOnAction(event -> showLoginPage());
+
+    Button signUpButton = new Button("Sign Up");
+    signUpButton.getStyleClass().add("main-button");
+    signUpButton.setStyle("-fx-font-size: 24; -fx-padding: 10 20; -fx-background-color: #2ecc71; -fx-text-fill: white;");
+    signUpButton.setOnAction(event -> showSignUpPage());
+
+    HBox buttonBox = new HBox(20, loginButton, signUpButton);
+    buttonBox.setAlignment(Pos.CENTER);
+
+    StackPane stackPane = new StackPane(welcomeImageView, buttonBox);
+
+    // Set the background color directly for the StackPane
+    stackPane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null))); // Change Color.WHITE to the desired background color
+
+    Scene scene = new Scene(stackPane, 800, 600);
+
+    primaryStage.setScene(scene);
+}
+      private void showLoginPage() {
+    primaryStage.setTitle("Login Page");
+
+    Image loginImage = new Image("file:C:\\Users\\LENOVO\\Documents\\NetBeansProjects\\rms1\\src\\rms1\\cooku.jpg");
+    ImageView loginImageView = new ImageView(loginImage);
+
+    TextField usernameField = new TextField();
+    PasswordField passwordField = new PasswordField();
+
+    Button loginButton = new Button("Login");
+    loginButton.setStyle("-fx-font-size: 20; -fx-padding: 10 20; -fx-background-color: #006400; -fx-text-fill: white;");
+    loginButton.setOnAction(event -> performLogin(usernameField.getText(), passwordField.getText()));
+
+    Hyperlink goToSignUpLink = new Hyperlink("Don't have an account? Sign Up");
+    goToSignUpLink.setStyle("-fx-font-size: 14;");
+    goToSignUpLink.setOnAction(event -> showSignUpPage());
+
+    VBox loginLayout = new VBox(10, new Label("Username:"), usernameField, new Label("Password:"), passwordField, loginButton, goToSignUpLink);
+    loginLayout.setPadding(new Insets(20));
+    loginLayout.setStyle("-fx-background-color: rgba(255, 255, 255, 0.7); -fx-padding: 20; -fx-background-radius: 10;");
+
+    Hyperlink goToWelcomeLink = new Hyperlink("Back to Welcome Page");
+    goToWelcomeLink.setStyle("-fx-font-size: 14;");
+
+    VBox fullLoginPage = new VBox(20, loginLayout, goToWelcomeLink);
+    fullLoginPage.setAlignment(Pos.CENTER);
+    fullLoginPage.getStyleClass().add("main-background");
+
+    StackPane stackPane = new StackPane(loginImageView, fullLoginPage);
+
+    Scene loginScene = new Scene(stackPane, 800, 600);
+
+    primaryStage.setScene(loginScene);
+}
+
+     private void showSignUpPage() {
+    primaryStage.setTitle("Sign Up Page");
+
+    Image signUpImage = new Image("file:C:\\Users\\LENOVO\\Documents\\NetBeansProjects\\rms1\\src\\rms1\\cooku.jpg");
+    ImageView signUpImageView = new ImageView(signUpImage);
+
+    TextField nameField = new TextField();
+    TextField emailField = new TextField();
+    TextField ageField = new TextField();
+    TextField genderField = new TextField();
+    PasswordField passwordField = new PasswordField();
+    TextField DishField = new TextField();
+
+    Button signUpButton = new Button("Sign Up");
+    signUpButton.setStyle("-fx-font-size: 20; -fx-padding: 10 20; -fx-background-color: #006400; -fx-text-fill: white;");
+    signUpButton.setOnAction(event -> performSignUp(
+            nameField.getText(), emailField.getText(), ageField.getText(),
+            genderField.getText(), passwordField.getText(), DishField.getText()));
+
+    Hyperlink goToLoginLink = new Hyperlink("Already have an account? Login");
+    goToLoginLink.setStyle("-fx-font-size: 14;");
+    goToLoginLink.setOnAction(event -> showLoginPage());
+
+    VBox signUpLayout = new VBox(10,
+            new Label("Name:"), nameField,
+            new Label("Email:"), emailField,
+            new Label("Age:"), ageField,
+            new Label("Gender:"), genderField,
+            new Label("Password:"), passwordField,
+            new Label("Dish:"), DishField,
+            signUpButton, goToLoginLink);
+
+    signUpLayout.setAlignment(Pos.CENTER);
+    nameField.setAlignment(Pos.CENTER);
+    emailField.setAlignment(Pos.CENTER);
+    ageField.setAlignment(Pos.CENTER);
+    genderField.setAlignment(Pos.CENTER);
+    passwordField.setAlignment(Pos.CENTER);
+    DishField.setAlignment(Pos.CENTER);
+
+    signUpLayout.setPadding(new Insets(20));
+    signUpLayout.setStyle("-fx-background-color: rgba(255, 255, 255, 0.7); -fx-padding: 20; -fx-background-radius: 10;");
+
+    StackPane stackPane = new StackPane(signUpImageView, signUpLayout);
+
+    Scene signUpScene = new Scene(stackPane, 800, 600);
+
+    primaryStage.setScene(signUpScene);
+}
+
+private void performLogin(String email, String password) {
+        try {
+            validateLoginFields(email, password);
+            if (isUserAuthenticated(email, password)) {
+                System.out.println("Login successful!");
+                showHomePage(email);
+                
+            } else {
+                System.out.println("Invalid email or password.");
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+private void validateLoginFields(String email, String password) {
+        if (email.isEmpty() || password.isEmpty()) {
+            throw new IllegalArgumentException("Email and password are required.");
+        }
+    }
+   private void performSignUp(String name, String email, String age, String gender, String password, String Dish) {
+        try {
+            validateSignUpFields(name, email, age, gender, password, Dish);
+            saveUserToDatabase(name, email, age, gender, password, Dish);
+            System.out.println("User information saved successfully!");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    private void validateSignUpFields(String name, String email, String age, String gender, String password, String Dish) {
+        if (name.isEmpty() || email.isEmpty() || age.isEmpty() || gender.isEmpty() || password.isEmpty()) {
+            throw new IllegalArgumentException("All fields are required.");
+        }
+
+        try {
+            int ageValue = Integer.parseInt(age);
+            if (ageValue < 0) {
+                throw new IllegalArgumentException("Age must be a non-negative number.");
+            }
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Age must be a valid number.");
+        }
+
+        if (!gender.equals("Male") && !gender.equals("Female") && !gender.equals("Other")) {
+            throw new IllegalArgumentException("Invalid gender.");
+        }
+
+    }
+ 
+
+private Label createLabel(String text) {
+    Label label = new Label(text);
+    label.setStyle("-fx-font-weight: bold; -fx-font-size: 16;");
+    return label;
+}
+
+    private boolean isUserAuthenticated(String email, String password) {
+        String url = "jdbc:mysql://localhost:3306/rms";
+        String user = "root";
+        String pass = "Gobika@123";
+
+        try (Connection conn = DriverManager.getConnection(url, user, pass);
+             PreparedStatement pstmt = conn.prepareStatement(
+                     "SELECT * FROM user WHERE email = ? AND password = ?")) {
+
+            pstmt.setString(1, email);
+            pstmt.setString(2, password);
+
+            try (ResultSet resultSet = pstmt.executeQuery()) {
+                return resultSet.next();
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    
+      private void saveUserToDatabase(String name, String email, String age, String gender, String password, String Dish) {
+        String url = "jdbc:mysql://localhost:3306/rms";
+        String user = "root";
+        String pass = "Gobika@123";
+        try (Connection conn = DriverManager.getConnection(url, user, pass);
+             PreparedStatement pstmt = conn.prepareStatement(
+                     "INSERT INTO user (name, email, age, gender, password, dish) VALUES (?, ?, ?, ?, ?, ?)")) {
+
+            pstmt.setString(1, name);
+            pstmt.setString(2, email);
+            pstmt.setString(3, age);
+            pstmt.setString(4, gender);
+            pstmt.setString(5, password);
+            pstmt.setString(6, Dish);
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+     public static void main(String[] args) {
+        launch(args);}
+}
+    
